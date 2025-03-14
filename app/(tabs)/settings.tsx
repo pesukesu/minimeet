@@ -80,9 +80,9 @@ export default function Example() {
               onPress={() => {
                 signOut();
               }}
-              style={styles.row}
+              style={styles.profileActionLogOut}
             >
-              <Text style={[styles.rowLabel, styles.rowLabelLogout]}>
+              <Text style={[styles.profileActionTextLogOut]}>
                 Log Out
               </Text>
             </TouchableOpacity>
@@ -125,7 +125,59 @@ export default function Example() {
                 </View>
               );
             })}
+
+            
           </View>
+          {value === 1 && (
+            <ScrollView>
+              <View style={styles.section}>
+                <View style={styles.sectionBody}>
+                  <View style={[styles.rowWrapper, styles.rowFirst]}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // Handle navigation to "How to Use the App"
+                      }}
+                      style={styles.row}
+                    >
+                      <Text style={styles.rowLabel}>How to Use the App</Text>
+                      <View style={styles.rowSpacer} />
+                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.rowWrapper}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // Handle navigation to FAQ
+                      }}
+                      style={styles.row}
+                    >
+                      <Text style={styles.rowLabel}>FAQ</Text>
+                      <View style={styles.rowSpacer} />
+                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.rowWrapper}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // Handle navigation to asd
+                      }}
+                      style={styles.row}
+                    >
+                      <Text style={styles.rowLabel}>asd</Text>
+                      <View style={styles.rowSpacer} />
+                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
+                    </TouchableOpacity>
+                  </View>
+
+
+                </View>
+              </View>
+            </ScrollView>
+          )}
+
+
 
           {value === 0 && (
             <ScrollView>
@@ -296,12 +348,15 @@ export default function Example() {
             </ScrollView>
           )}
         </View>
+
       ) : (
         <View style={styles.container}>
           <Text style={styles.headerTitle}>Please log in to view settings</Text>
         </View>
+
       )}
     </SafeAreaView>
+
   );
 }
 
@@ -377,12 +432,30 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     borderRadius: 12,
   },
-
+  profileActionLogOut: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "rgba(220, 38, 38, 0.7)", // #dc2626 with 50% opacity
+    borderWidth: 2, // Define the border thickness
+    borderRadius: 12,
+    backgroundColor: "transparent", // Make background transparent
+  },
   profileActionText: {
     marginRight: 8,
     fontSize: 15,
     fontWeight: "600",
     color: "#fff",
+  },
+
+  profileActionTextLogOut: {
+    marginRight: 8,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#dc2626",
   },
   /** Tab */
   tab: {

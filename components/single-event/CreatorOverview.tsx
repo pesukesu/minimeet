@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import {
   StyleSheet,
   StatusBar,
@@ -8,9 +7,7 @@ import {
   Text,
   Image,
 } from "react-native";
-
 import { useAuth } from "@/contexts/AuthContext";
-
 import { UserProfile } from "@/types";
 
 type CreatorOverviewProps = {
@@ -19,7 +16,6 @@ type CreatorOverviewProps = {
 
 export default function CreatorOverview({ creatorID }: CreatorOverviewProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-
   const { getSingleUserProfile } = useAuth();
 
   useEffect(() => {
@@ -49,7 +45,6 @@ export default function CreatorOverview({ creatorID }: CreatorOverviewProps) {
                 }}
                 style={styles.avatarImg}
               />
-
               <View style={styles.avatarNotification} />
             </View>
 
@@ -58,16 +53,23 @@ export default function CreatorOverview({ creatorID }: CreatorOverviewProps) {
                 {userProfile.first_name} {userProfile.last_name}
               </Text>
               <Text style={styles.profileSubtitle}>
-                Instagram influencer
-                {" · "}
-                <Text style={{ color: "#266EF1" }}>Time Studio</Text>
+                {userProfile.job_title ?? "No job title"} {" · "}
+                <Text style={{ color: "#266EF1" }}>
+                  {userProfile.company_name ?? "No company"}
+                </Text>
               </Text>
+              {/* Display hometown if available */}
+              {userProfile.hometown && (
+                <Text style={styles.profileHometown}>
+                  📍 {userProfile.hometown}
+                </Text>
+              )}
             </View>
           </View>
 
+          {/* Updated this line to fetch actual description */}
           <Text style={styles.profileDescription}>
-            Skilled in user research, wireframing, prototyping, and
-            collaborating with cross-functional teams.
+            {userProfile.user_profile_description ?? "No description available."}
           </Text>
         </View>
       </View>
@@ -83,7 +85,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     flexBasis: 0,
   },
-  /** Profile */
   profile: {
     backgroundColor: "transparent",
     padding: 24,
@@ -112,26 +113,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#778599",
   },
+  profileHometown: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#266EF1",
+    marginTop: 4,
+  },
   profileDescription: {
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 18,
     color: "#778599",
   },
-  profileTags: {
-    marginTop: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  profileTagsItem: {
-    fontSize: 14,
-    fontWeight: "600",
-    lineHeight: 18,
-    color: "#266ef1",
-    marginRight: 4,
-  },
-  /** Avatar */
   avatar: {
     position: "relative",
   },

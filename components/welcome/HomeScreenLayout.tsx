@@ -31,27 +31,43 @@ export default function HomeScreenLayout({
     <SafeAreaView style={styles.container}>
       <View style={styles.top}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push("/settings")}>
+          <TouchableOpacity onPress={() => router.push("/settings")}>            
             {userProfile ? (
               <Image
-                alt=""
                 source={{ uri: userProfile.avatar_url }}
                 style={styles.avatar}
               />
             ) : null}
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push("/notifications_modal")}>
+            <FeatherIcon name="bell" size={24} color={Colors.text} />
+          </TouchableOpacity>
         </View>
+
         <View style={styles.greeting}>
           <Text style={styles.greetingTitle}>
             {userProfile
               ? `Hello, ${userProfile.first_name}!`
               : "Login or sign up to get started"}
-          </Text>
+          </Text> 
           <Text style={styles.greetingText}>
-            There's 35 events near you today
+            There's N events near you today
           </Text>
+          
+          {!userProfile && (
+            <TouchableOpacity 
+              style={styles.loginButton}
+              onPress={() => router.push("/login")}
+            >
+              <Text style={styles.loginButtonText}>
+                Log in / Sign up
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
-        <View style={styles.search}>
+
+        <View style={styles.search}>              
           <TextInput
             placeholder="Search"
             placeholderTextColor="#9695b0"
@@ -70,10 +86,11 @@ export default function HomeScreenLayout({
           </View>
         </View>
       </View>
-      <View style={styles.content}>
+
+      <View style={styles.content}>           
         <View style={styles.contentHeader}>
           <Text style={styles.contentTitle}>Events near you</Text>
-          <TouchableOpacity onPress={() => router.push("/explore")}>
+          <TouchableOpacity onPress={() => router.push("/explore")}>            
             <Text style={styles.contentLink}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -174,5 +191,18 @@ const styles = StyleSheet.create({
   },
   contentPlaceholder: {
     flex: 1,
+  },
+  loginButton: {
+    backgroundColor: Colors.tint,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  loginButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

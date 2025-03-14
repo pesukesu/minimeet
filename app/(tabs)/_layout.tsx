@@ -38,6 +38,7 @@ export default function TabLayout() {
           tabBarShowLabel: false,
         }}
       >
+
         <Tabs.Screen
           name="index"
           options={{
@@ -45,6 +46,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="feed" color={color} />,
           }}
         />
+
         <Tabs.Screen
           name="explore"
           options={{
@@ -54,23 +56,29 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen
+
+          <Tabs.Screen
           name="create"
           options={{
+            title: "Create",
             tabBarIcon: () => (
               <View style={styles.createIconContainer}>
                 <TabBarIcon name="magic" color={Colors.background} />
               </View>
             ),
           }}
-          listeners={{
-            tabPress: (e) => {
-              if (!session) {
-                e.preventDefault();
-                router.push("/login-modal");
-              }
-            },
-          }}
+
+
+
+
+           listeners={{
+             tabPress: (e) => {
+               if (!session) {
+                 e.preventDefault();
+                 router.push("/login-modal");
+               }
+             },
+           }}
         />
         <Tabs.Screen
           name="my-meets"

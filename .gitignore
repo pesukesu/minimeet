@@ -54,3 +54,6 @@ assets/images/placeholder-images/*
 
 expo-env.d.ts
 # @end expo-cli
+
+#android emulator
+android/

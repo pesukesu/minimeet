@@ -75,12 +75,12 @@ export default function LoginSignUpForm() {
           onPress={() => signInWithEmail()}
         />
       </View>
-      {/* <View style={styles.verticallySpaced}>
+       <View style={styles.verticallySpaced}>
         <Button
           title={loading ? "Loading..." : "Sign up"}
           onPress={() => signUpWithEmail()}
         />
-      </View> */}
+      </View> 
     </View>
   );
 }

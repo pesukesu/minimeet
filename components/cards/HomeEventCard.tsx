@@ -30,11 +30,13 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
       <View style={styles.card}>
         <View style={styles.cardTop}>
           <Image
-            alt=""
+            alt="Event Image"
             resizeMode="cover"
             style={styles.cardImg}
             source={{ uri: event.image }}
           />
+
+          {/* Heart Icon (Save) */}
           <View style={styles.cardLikeWrapper}>
             <TouchableOpacity onPress={handleSave}>
               <View style={styles.cardLike}>
@@ -47,20 +49,30 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* Price (Bottom Left) */}
+          <View style={styles.priceWrapper}>
+            <Text style={styles.cardPrice}>💰 €{event.ticket_price || 0}</Text>
+          </View>
+
+          {/* Attendees (Bottom Right) */}
+          <View style={styles.attendeesWrapper}>
+            <Text style={styles.cardAttendees}>👥 {event.number_of_attendees}</Text>
+          </View>
         </View>
 
         <View style={styles.cardBody}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>{event.title}</Text>
-            <View style={styles.pricePill}>
-              <Text style={styles.cardPrice}>
-                <Text style={styles.cardPriceBold}>${event.ticket_price}</Text>
-                <Text> /ticket</Text>
-              </Text>
-            </View>
-          </View>
+          <Text style={styles.cardTitle}>{event.title}</Text>
 
-          <Text style={styles.cardDates}>{event.date_of_event}</Text>
+          <Text style={styles.cardLocation}>
+            📍 {event.street_address}, {event.city}, {event.postal_code}
+          </Text>
+
+          <Text style={styles.cardDates}>📅 {event.date_of_event}</Text>
+
+          <Text style={styles.cardTime}>
+            ⏰ {event.time_of_event} - {event.end_time_of_event}
+          </Text>
 
           <Text
             numberOfLines={2}
@@ -86,13 +98,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     marginBottom: 16,
     shadowColor: "rgba(0, 0, 0, 0.5)",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
+    padding: 12,
   },
   cardTop: {
     borderTopLeftRadius: Colors.borderRadius,
@@ -107,36 +117,33 @@ const styles = StyleSheet.create({
   cardBody: {
     padding: 12,
   },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 8,
-  },
   cardTitle: {
     fontSize: 18,
     fontWeight: "500",
     color: Colors.text,
-    flex: 1,
   },
-  cardStars: {
-    marginLeft: 2,
-    marginRight: 4,
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#232425",
+  cardLocation: {
+    fontSize: 14,
+    color: Colors.text + "80",
+    marginTop: 4,
   },
   cardDates: {
-    marginTop: 8,
     fontSize: 16,
     color: Colors.text + "80",
+    marginTop: 4,
   },
-  cardPrice: {
+  cardTime: {
     fontSize: 14,
-    color: Colors.text,
+    color: Colors.text + "80",
+    marginTop: 4,
   },
-  cardPriceBold: {
-    fontWeight: "600",
+  cardDescription: {
+    marginTop: 8,
+    fontSize: 14,
+    lineHeight: 18, // Ensures it properly takes 2 lines
+    maxHeight: 36,  // 2 lines x 18px lineHeight
+    overflow: "hidden",
+    color: Colors.text + "90",
   },
   cardLikeWrapper: {
     position: "absolute",
@@ -151,16 +158,33 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  pricePill: {
-    backgroundColor: Colors.tint + "20",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+  priceWrapper: {
+    position: "absolute",
+    bottom: 10,
+    left: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 10,
   },
-  cardDescription: {
-    marginTop: 8,
+  cardPrice: {
     fontSize: 14,
-    lineHeight: 20,
-    color: Colors.text + "90",
+    color: "#fff",
+    fontWeight: "600",
+  },
+  attendeesWrapper: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+  },
+  cardAttendees: {
+    fontSize: 14,
+    color: "#fff",
+    fontWeight: "600",
   },
 });
+

@@ -18,7 +18,8 @@ interface CreateEventFormStepProps {
   buttonPress: () => void;
   stepTitle: string;
   buttonText: string;
-  formInputs: { label: string; inputProps: TextInputProps }[];
+  formInputs: { label: string; inputProps?: TextInputProps; customInput?: React.ReactElement }[];
+  eventSummary: React.ReactElement; // added to get rid of error lol
 }
 
 export default function Example({
@@ -45,35 +46,29 @@ export default function Example({
       </View>
 
       <KeyboardAwareScrollView style={styles.content}>
-        {formInputs.map((input, index) => (
-          <View style={styles.section} key={index}>
-            <Text style={styles.sectionTitle}>{input.label}</Text>
-            <View style={styles.sectionBody}>
-              {input.inputProps.multiline ? (
-                <TextInput
-                  clearButtonMode="while-editing"
-                  onChangeText={input.inputProps.onChangeText}
-                  placeholder={input.inputProps.placeholder}
-                  style={[
-                    styles.sectionInput,
-                    { height: 150, textAlignVertical: "top", paddingTop: 12 },
-                  ]}
-                  value={input.inputProps.value}
-                  multiline={true}
-                  numberOfLines={4}
-                />
-              ) : (
-                <TextInput
-                  clearButtonMode="while-editing"
-                  onChangeText={input.inputProps.onChangeText}
-                  placeholder={input.inputProps.placeholder}
-                  style={styles.sectionInput}
-                  value={input.inputProps.value}
-                />
-              )}
-            </View>
-          </View>
-        ))}
+      {formInputs.map((input, index) => (
+  <View style={styles.section} key={index}>
+    <Text style={styles.sectionTitle}>{input.label}</Text>
+    <View style={styles.sectionBody}>
+      {input.customInput ? (
+        input.customInput
+      ) : (
+        <TextInput
+          clearButtonMode="while-editing"
+          onChangeText={input.inputProps?.onChangeText} // 🛠 Add safety check (?)
+          placeholder={input.inputProps?.placeholder}
+          style={[
+            styles.sectionInput,
+            input.inputProps?.multiline ? { height: 150, textAlignVertical: "top", paddingTop: 12 } : {},
+          ]}
+          value={input.inputProps?.value}
+          multiline={input.inputProps?.multiline || false} // 🛠 Add default `false`
+          numberOfLines={input.inputProps?.multiline ? 4 : 1} // 🛠 Prevent `undefined`
+        />
+      )}
+    </View>
+  </View>
+))}
 
         <TouchableOpacity
           onPress={() => {

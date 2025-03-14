@@ -16,23 +16,27 @@ import { useFonts } from "expo-font";
 export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
 
+// Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  // Load fonts
+  const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
   });
 
   useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+    if (fontError) {
+      throw fontError; // Throw the error so it's caught by ErrorBoundary
+    }
+  }, [fontError]);
 
-  if (!loaded) return null;
+  if (!fontsLoaded) {
+    return null; // Keep splash screen until fonts are ready
+  }
 
   return (
     <AuthProvider>
@@ -48,25 +52,10 @@ function RootLayoutWithData() {
 
   useEffect(() => {
     async function hideSplashScreen() {
-      try {
-        const isAuthLoadingComplete = authLoadingStatus !== "fetching";
-        const isError = authLoadingStatus === "error";
-
-        if (isError) {
-          console.error("Error loading initial data");
-          await SplashScreen.hideAsync();
-          return;
-        }
-
-        if (isAuthLoadingComplete) {
-          await SplashScreen.hideAsync();
-        }
-      } catch (error) {
-        console.error("Error hiding splash screen:", error);
+      if (authLoadingStatus !== "fetching") {
         await SplashScreen.hideAsync();
       }
     }
-
     hideSplashScreen();
   }, [authLoadingStatus]);
 
@@ -77,16 +66,9 @@ function RootLayoutNav() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="meet/[id]"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
-        name="login-modal"
-        options={{ headerShown: false, presentation: "modal" }}
-      />
+      <Stack.Screen name="meet/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="notifications_modal" options={{ headerShown: false, presentation: "modal" }} /> 
+      <Stack.Screen name="login-modal" options={{ headerShown: false, presentation: "modal" }} /> 
     </Stack>
   );
 }

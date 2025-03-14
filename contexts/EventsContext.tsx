@@ -72,7 +72,8 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log(
       "Successfully fetched categories:",
       data.length,
-      "categories found"
+      "categories found:",
+      data.map((item) => item.title).join(", ") //print all event categories
     );
   }
 

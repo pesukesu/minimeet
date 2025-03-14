@@ -43,6 +43,7 @@ export type SupabaseEventType = {
   number_of_attendees: number;
   date_of_event: string;
   time_of_event: string;
+  end_time_of_event: string;
   host_id: string;
   category: string;
   ticket_price: number;
@@ -69,4 +70,8 @@ export interface UserProfile extends User {
   last_name?: string;
   avatar_url?: string;
   top_creator?: boolean;
+  user_profile_description?: string;
+  company_name?: string;
+  job_title?: string;
+  hometown?: string;
 }

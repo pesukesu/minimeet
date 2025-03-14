@@ -1,6 +1,5 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { router } from "expo-router";
-
 import { SupabaseEventType } from "@/types";
 
 export default function WideEventCard({ event }: { event: SupabaseEventType }) {
@@ -10,108 +9,81 @@ export default function WideEventCard({ event }: { event: SupabaseEventType }) {
       onPress={() => router.push(`/meet/${event.id.toString()}`)}
     >
       <View style={styles.card}>
-        <Image
-          alt=""
-          resizeMode="cover"
-          source={{
-            uri: "https://plus.unsplash.com/premium_photo-1661281316103-9aef5ad47c50?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-          }}
-          style={styles.cardImg}
-        />
-
-        <View style={styles.cardBody}>
-          <Text style={styles.cardTag}>{event.category}</Text>
-
-          <Text style={styles.cardTitle}>{event.title}</Text>
-
-          <View style={styles.cardRow}>
-            <View style={styles.cardRowItem}>
-              <Image
-                alt=""
-                source={{
-                  uri: "https://plus.unsplash.com/premium_photo-1663050986883-a5bdd99a7fa5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2362&q=80",
-                }}
-                style={styles.cardRowItemImg}
-              />
-
-              <Text style={styles.cardRowItemText}>{"Matti Sirokov"}</Text>
+        <View style={styles.cardContent}>
+          <View style={styles.cardLeft}>
+            <Text style={styles.cardTitle}>{event.title}</Text>
+            <Text style={styles.cardAddress}>📍 {event.street_address}, {event.city}, {event.postal_code}</Text>
+            <View style={styles.cardRow}>
+              <Text style={styles.cardRowItemText}>📅 {event.date_of_event}</Text>
+              <Text style={styles.cardRowItemText}>⏰ {event.time_of_event} - {event.end_time_of_event}</Text>
             </View>
-
-            <Text style={styles.cardRowDivider}>·</Text>
-
-            <View style={styles.cardRowItem}>
-              <Text style={styles.cardRowItemText}>{event.date_of_event}</Text>
-            </View>
+          </View>
+          <View style={styles.cardRight}>
+            <Image
+              alt="Category Icon"
+              resizeMode="cover"
+              source={{ uri: event.image || "https://rnofijizfghsdoyrcnlo.supabase.co/storage/v1/object/public/Event%20Images//defaultEvent.png" }}
+              style={styles.cardImg}
+            />
+            <Text style={styles.cardRowItemText}>👥 {event.number_of_attendees}</Text>
+            <Text style={styles.cardRowItemText}>💰 €{event.ticket_price || 0}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
+
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "stretch",
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 6,
     backgroundColor: "#fff",
+    paddingTop: 2,
+    paddingRight: 6,
+    paddingBottom: 2,
+    paddingLeft: 6,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  cardLeft: {
+    width: "80%",
+  },
+  cardRight: {
+    width: "20%",
+    alignItems: "flex-end",
   },
   cardImg: {
-    width: 96,
-    height: 96,
-    borderRadius: 12,
-  },
-  cardBody: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    paddingHorizontal: 16,
-  },
-  cardTag: {
-    fontWeight: "500",
-    fontSize: 12,
-    color: "#939393",
-    marginBottom: 7,
-    textTransform: "capitalize",
+    width: 40,
+    height: 40,
+    borderRadius: 8,
   },
   cardTitle: {
-    fontWeight: "600",
-    fontSize: 16,
-    lineHeight: 19,
+    fontWeight: "700",
+    fontSize: 18,
     color: "#000",
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  cardAddress: {
+    fontSize: 14,
+    color: "#444",
+    marginBottom: 4,
   },
   cardRow: {
     flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: -8,
-    marginBottom: "auto",
-  },
-  cardRowItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 6,
-    borderRightWidth: 1,
-    borderColor: "transparent",
-  },
-  cardRowItemImg: {
-    width: 22,
-    height: 22,
-    borderRadius: 9999,
-    marginRight: 6,
+    justifyContent: "space-between",
+    width: "100%",
   },
   cardRowItemText: {
-    fontWeight: "400",
-    fontSize: 13,
-    color: "#939393",
-  },
-  cardRowDivider: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#939393",
+    fontWeight: "500",
+    fontSize: 15,
+    color: "#333",
   },
 });
