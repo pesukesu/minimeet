@@ -17,6 +17,7 @@ export type AuthContextType = {
   getSingleUserProfile: (userId: string) => Promise<UserProfile | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  updateUserProfile: (userProfileData: UserProfile) => Promise<void>; // Add this line
   loading: boolean;
   status: LoadingStatus;
 };
@@ -64,7 +65,7 @@ export type SupabaseCategoryType = {
 };
 
 // Types for the User Profile, also coming from Supabase
-export interface UserProfile extends User {
+export interface UserProfile {
   user_id?: string;
   first_name?: string;
   last_name?: string;
@@ -75,3 +76,4 @@ export interface UserProfile extends User {
   job_title?: string;
   hometown?: string;
 }
+

@@ -1,8 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+// contexts/AuthContext.tsx
 
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/config/supabase";
-
 import { AuthContextType, LoadingStatus, UserProfile } from "@/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,7 +16,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [status, setStatus] = useState<LoadingStatus>("fetching");
 
   const fetchUserData = async (userId: string) => {
-    console.log(`Fetching user data for userId: ${userId}...`);
     const { data, error } = await supabase
       .from("Users")
       .select("*")
@@ -28,13 +27,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return null;
     }
 
-    console.log("Successfully fetched user data");
     return data;
   };
 
   useEffect(() => {
     const fetchSessionAndUser = async () => {
-      console.log("Fetching session and user data...");
       setStatus("fetching");
       try {
         const {
@@ -44,9 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (session?.user) {
           const userData = await fetchUserData(session.user.id);
           setUserProfile({ ...session.user, ...userData });
+          console.log("User profile set:", { ...session.user, ...userData });
         }
         setStatus("complete");
-        console.log("Successfully fetched session and user data");
       } catch (error) {
         setStatus("error");
         console.error("Error fetching session:", error);
@@ -54,13 +51,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setLoading(false);
       }
     };
-
+  
     fetchSessionAndUser();
+
+
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("Auth state changed, updating session and user data...");
       setStatus("fetching");
       try {
         setSession(session);
@@ -69,9 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setUserProfile({ ...session.user, ...userData });
         }
         setStatus("complete");
-        console.log(
-          "Successfully updated session and user data after auth change"
-        );
       } catch (error) {
         setStatus("error");
         console.error("Error during auth state change:", error);
@@ -83,23 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => subscription.unsubscribe();
   }, []);
 
-  const getSingleUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("Users")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching user profile:", error);
-      return null;
-    }
-
-    return data;
-  };
-
   const signIn = async (email: string, password: string) => {
-    console.log("Attempting to sign in...");
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -108,25 +87,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Sign in failed:", error);
       throw error;
     }
-    console.log("Successfully signed in");
   };
 
   const signOut = async () => {
-    console.log("Attempting to sign out...");
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("Sign out failed:", error);
       throw error;
     }
-    console.log("Successfully signed out");
   };
+
+// Update user profile function
+const updateUserProfile = async (userProfileData: Partial<UserProfile>) => {
+  if (!session?.user) {
+    console.error("No user session available");
+    return;
+  }
+
+  // Ensure that the user_id is set
+  const updatedData = {
+    ...userProfileData,
+    user_id: session.user.id, // Ensure user_id is always included
+  };
+
+  // Only include fields that have actually been modified
+  const updateFields = Object.fromEntries(
+    Object.entries(updatedData).filter(([key, value]) => value !== undefined)
+  );
+
+  const { error } = await supabase
+    .from("Users")
+    .update(updateFields)  // Use the filtered updateFields object to only update modified fields
+    .eq("user_id", session.user.id)  // Make sure the update targets the correct user
+    .single();
+
+  if (error) {
+    console.error("Error updating user profile:", error);
+    throw error;
+  }
+
+  // Update local state after a successful update
+  setUserProfile({ ...session.user, ...userProfileData });
+};
 
   const value: AuthContextType = {
     session,
     userProfile,
-    getSingleUserProfile,
+    getSingleUserProfile: fetchUserData,
     signIn,
     signOut,
+    updateUserProfile, // Added here
     loading,
     status,
   };
@@ -136,22 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
-
-type AuthenticatedContextType = Omit<
-  AuthContextType,
-  "session" | "userProfile"
-> & {
-  session: Session;
-  userProfile: UserProfile;
-};
-
-export const useAuthenticatedUser = () => {
-  const context = useAuth();
-  return context as AuthenticatedContextType;
 };

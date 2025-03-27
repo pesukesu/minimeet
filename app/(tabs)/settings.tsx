@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   SafeAreaView,
@@ -7,544 +6,343 @@ import {
   ScrollView,
   TouchableOpacity,
   Text,
-  Switch,
   Image,
+  TextInput,
+  Modal,
+  ActivityIndicator,
+  Switch,
+  Platform,
+  KeyboardAvoidingView,
+  Alert,
 } from "react-native";
-
 import { useAuth } from "@/contexts/AuthContext";
-
 import FeatherIcon from "@expo/vector-icons/Feather";
+import { UserProfile } from "@/types";
 
-const tabs = [
-  { name: "Preferences", icon: "settings" },
-  { name: "Help", icon: "help-circle" },
-];
+export default function SettingsScreen() {
+  const { signOut, userProfile, updateUserProfile } = useAuth();
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function Example() {
-  const [value, setValue] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
-  const { signOut, userProfile } = useAuth();
-
-  const [form, setForm] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
+  // Temporary state for editing
+  const [tempProfile, setTempProfile] = useState<Partial<UserProfile>>({
+    first_name: "",
+    last_name: "",
+    avatar_url: "",
+    user_profile_description: "",
+    company_name: "",
+    job_title: "",
+    hometown: "",
   });
 
-  if (!userProfile) {
-    return null; // TODO: add an empty state
+  // Settings states
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize temporary profile when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      setTempProfile({
+        first_name: userProfile.first_name || "",
+        last_name: userProfile.last_name || "",
+        avatar_url: userProfile.avatar_url || "",
+        user_profile_description: userProfile.user_profile_description || "",
+        company_name: userProfile.company_name || "",
+        job_title: userProfile.job_title || "",
+        hometown: userProfile.hometown || "",
+      });
+      setIsLoading(false);
+    } else {
+      setError("No user profile found");
+      setIsLoading(false);
+    }
+  }, [userProfile]);
+
+
+  const handleUpdateProfile = async () => {
+    // Prevent multiple simultaneous updates
+    if (loading) return;
+  
+    setLoading(true);
+  
+    try {
+      // Ensure user_id is available (user_id should be provided by useAuth context)
+      if (!userProfile?.user_id) {
+        throw new Error("User ID is missing. Cannot update profile.");
+      }
+  
+      // Construct the updated profile object
+      const updatedProfile: Partial<UserProfile> = {
+        first_name: tempProfile.first_name || userProfile.first_name,
+        last_name: tempProfile.last_name || userProfile.last_name,
+        avatar_url: tempProfile.avatar_url || userProfile.avatar_url,
+        user_profile_description: tempProfile.user_profile_description || userProfile.user_profile_description,
+        company_name: tempProfile.company_name || userProfile.company_name,
+        job_title: tempProfile.job_title || userProfile.job_title,
+        hometown: tempProfile.hometown || userProfile.hometown,
+      };
+  
+      // Update the profile
+      await updateUserProfile(updatedProfile);
+  
+      // Close editing mode
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      Alert.alert(
+        "Update Failed",
+        "Could not update profile. Please try again.",
+        [{ text: "OK", onPress: () => {} }]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+
+
+
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text>Loading Profile...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Render error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity onPress={signOut}>
+          <Text>Log Out</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f8f8" }}>
-      {userProfile ? (
+      <ScrollView keyboardShouldPersistTaps="handled">
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Settings</Text>
-
-            <Text style={styles.headerSubtitle}>
-              Manage your account settings and preferences
-            </Text>
           </View>
 
           <View style={styles.profile}>
             <View style={styles.profileHeader}>
-              <Image
-                alt=""
-                source={{
-                  uri: userProfile.avatar_url,
-                }}
-                style={styles.profileAvatar}
+              <Image 
+                alt="Profile" 
+                source={{ uri: tempProfile.avatar_url || 'https://rnofijizfghsdoyrcnlo.supabase.co/storage/v1/object/public/User%20Profile%20Images//a2.png' }} 
+                style={styles.profileAvatar} 
+                onError={(e) => console.log('Image load error', e.nativeEvent.error)}
               />
-
               <View>
                 <Text style={styles.profileName}>
-                  {userProfile.first_name} {userProfile.last_name}
+                  {tempProfile.first_name} {tempProfile.last_name}
                 </Text>
-
-                <Text style={styles.profileHandle}>{userProfile.email}</Text>
+                <Text style={styles.profileHandle}>{tempProfile.company_name}</Text>
               </View>
             </View>
 
-            <TouchableOpacity
-              onPress={() => {
-                // handle onPress
-              }}
+            <TouchableOpacity 
+              onPress={() => setIsEditing(true)} 
+              disabled={loading}
             >
               <View style={styles.profileAction}>
                 <Text style={styles.profileActionText}>Edit Profile</Text>
-
                 <FeatherIcon color="#fff" name="edit-3" size={16} />
               </View>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                signOut();
-              }}
-              style={styles.profileActionLogOut}
-            >
-              <Text style={[styles.profileActionTextLogOut]}>
-                Log Out
-              </Text>
+
+            <TouchableOpacity onPress={signOut} style={styles.profileActionLogOut}>
+              <Text style={styles.profileActionTextLogOut}>Log Out</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </ScrollView>
 
-          <View style={styles.tabs}>
-            {tabs.map(({ name, icon }, index) => {
-              const isActive = index === value;
+      {/* Profile Edit Modal */}
+      <Modal 
+        visible={isEditing} 
+        transparent 
+        animationType="slide"
+        onRequestClose={() => setIsEditing(false)}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalBackground}
+        >
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Edit Profile</Text>
 
-              return (
-                <View
-                  key={name}
-                  style={[
-                    styles.tabWrapper,
-                    isActive && { borderBottomColor: "#6366f1" },
-                  ]}
+            <ScrollView 
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.modalScrollView}
+            >
+              <TextInput 
+                style={styles.input} 
+                placeholder="First Name" 
+                value={tempProfile.first_name || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, first_name: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Last Name" 
+                value={tempProfile.last_name || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, last_name: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Avatar URL" 
+                value={tempProfile.avatar_url || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, avatar_url: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Profile Description" 
+                value={tempProfile.user_profile_description || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, user_profile_description: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Company Name" 
+                value={tempProfile.company_name || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, company_name: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Job Title" 
+                value={tempProfile.job_title || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, job_title: text }))} 
+              />
+              <TextInput 
+                style={styles.input} 
+                placeholder="Hometown" 
+                value={tempProfile.hometown || ""} 
+                onChangeText={(text) => setTempProfile(prev => ({ ...prev, hometown: text }))} 
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  onPress={() => setIsEditing(false)} 
+                  disabled={loading}
                 >
-                  <TouchableOpacity
-                    onPress={() => {
-                      setValue(index);
-                    }}
-                  >
-                    <View style={styles.tab}>
-                      <FeatherIcon
-                        color={isActive ? "#6366f1" : "#6b7280"}
-                        name={icon as keyof typeof FeatherIcon.glyphMap}
-                        size={16}
-                      />
-
-                      <Text
-                        style={[
-                          styles.tabText,
-                          isActive && { color: "#6366f1" },
-                        ]}
-                      >
-                        {name}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-
-            
+                  <Text style={styles.modalCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={handleUpdateProfile} 
+                  disabled={loading}
+                >
+                  <View style={styles.modalSave}>
+                    {loading ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.modalSaveText}>Save</Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-          {value === 1 && (
-            <ScrollView>
-              <View style={styles.section}>
-                <View style={styles.sectionBody}>
-                  <View style={[styles.rowWrapper, styles.rowFirst]}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // Handle navigation to "How to Use the App"
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>How to Use the App</Text>
-                      <View style={styles.rowSpacer} />
-                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // Handle navigation to FAQ
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>FAQ</Text>
-                      <View style={styles.rowSpacer} />
-                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // Handle navigation to asd
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>asd</Text>
-                      <View style={styles.rowSpacer} />
-                      <FeatherIcon color="#C6C6C6" name="chevron-right" size={20} />
-                    </TouchableOpacity>
-                  </View>
-
-
-                </View>
-              </View>
-            </ScrollView>
-          )}
-
-
-
-          {value === 0 && (
-            <ScrollView>
-              <View style={styles.section}>
-                <View style={styles.sectionBody}>
-                  <View style={[styles.rowWrapper, styles.rowFirst]}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Language</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <Text style={styles.rowValue}>English</Text>
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Location</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <Text style={styles.rowValue}>Los Angeles, CA</Text>
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <View style={styles.row}>
-                      <Text style={styles.rowLabel}>Email Notifications</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <Switch
-                        onValueChange={(emailNotifications) =>
-                          setForm({ ...form, emailNotifications })
-                        }
-                        style={{
-                          transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }],
-                        }}
-                        value={form.emailNotifications}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <View style={styles.row}>
-                      <Text style={styles.rowLabel}>Push Notifications</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <Switch
-                        onValueChange={(pushNotifications) =>
-                          setForm({ ...form, pushNotifications })
-                        }
-                        style={{
-                          transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }],
-                        }}
-                        value={form.pushNotifications}
-                      />
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Resources</Text>
-
-                <View style={styles.sectionBody}>
-                  <View style={[styles.rowWrapper, styles.rowFirst]}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Contact Us</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Report Bug</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Rate in App Store</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.rowWrapper}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // handle onPress
-                      }}
-                      style={styles.row}
-                    >
-                      <Text style={styles.rowLabel}>Terms and Privacy</Text>
-
-                      <View style={styles.rowSpacer} />
-
-                      <FeatherIcon
-                        color="#C6C6C6"
-                        name="chevron-right"
-                        size={20}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-              <Text style={styles.contentFooter}>App Version 2.24 #50491</Text>
-            </ScrollView>
-          )}
-        </View>
-
-      ) : (
-        <View style={styles.container}>
-          <Text style={styles.headerTitle}>Please log in to view settings</Text>
-        </View>
-
-      )}
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
-
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 24,
-    paddingHorizontal: 0,
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
   },
-  tabs: {
-    flexDirection: "row",
-    paddingTop: 16,
-    backgroundColor: "#fff",
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+    fontSize: 16,
   },
-  /** Header */
-  header: {
-    paddingHorizontal: 24,
-    marginBottom: 12,
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#1d1d1d",
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#929292",
-    marginTop: 6,
-  },
-  /** Profile */
-  profile: {
-    paddingTop: 12,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#e3e3e3",
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  profileAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    marginRight: 12,
-  },
-  profileName: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#3d3d3d",
-  },
-  profileHandle: {
-    marginTop: 4,
-    fontSize: 15,
-    color: "#989898",
-  },
-  profileAction: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
+  container: { paddingVertical: 24, flex: 1 },
+  header: { paddingHorizontal: 24, marginBottom: 12 },
+  headerTitle: { fontSize: 32, fontWeight: "700" },
+  profile: { padding: 24, backgroundColor: "#fff", borderTopWidth: 1, borderBottomWidth: 1, borderColor: "#e3e3e3" },
+  profileHeader: { flexDirection: "row", alignItems: "center" },
+  profileAvatar: { width: 60, height: 60, borderRadius: 9999, marginRight: 12 },
+  profileName: { fontSize: 17, fontWeight: "600" },
+  profileHandle: { fontSize: 15, color: "#989898" },
+  profileAction: { 
+    marginTop: 16, 
+    paddingVertical: 10, 
+    backgroundColor: "#000", 
+    borderRadius: 12, 
+    alignItems: "center", 
     justifyContent: "center",
-    backgroundColor: "#000",
-    borderRadius: 12,
-  },
-  profileActionLogOut: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "rgba(220, 38, 38, 0.7)", // #dc2626 with 50% opacity
-    borderWidth: 2, // Define the border thickness
-    borderRadius: 12,
-    backgroundColor: "transparent", // Make background transparent
+    gap: 8,
   },
-  profileActionText: {
-    marginRight: 8,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#fff",
+  profileActionText: { color: "#fff", fontWeight: "600" },
+  profileActionLogOut: { 
+    marginTop: 16, 
+    paddingVertical: 10, 
+    borderColor: "#dc2626", 
+    borderWidth: 2, 
+    borderRadius: 12, 
+    alignItems: "center" 
   },
-
-  profileActionTextLogOut: {
-    marginRight: 8,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#dc2626",
+  profileActionTextLogOut: { color: "#dc2626", fontWeight: "600" },
+  modalBackground: { 
+    flex: 1, 
+    backgroundColor: "rgba(0,0,0,0.5)", 
+    justifyContent: "center", 
+    alignItems: "center" 
   },
-  /** Tab */
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    overflow: "hidden",
-    paddingVertical: 10,
+  modalContainer: { 
+    backgroundColor: "#fff", 
+    padding: 20, 
+    borderRadius: 10, 
+    width: "90%", 
+    maxHeight: "80%" 
   },
-  tabWrapper: {
+  modalTitle: { 
+    fontSize: 20, 
+    fontWeight: "600", 
+    marginBottom: 10, 
+    textAlign: "center" 
+  },
+  modalScrollView: {
     flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-    borderColor: "#e5e7eb",
-    borderBottomWidth: 2,
   },
-  tabText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#6b7280",
-    marginLeft: 5,
+  input: { 
+    borderBottomWidth: 1, 
+    marginBottom: 15, 
+    padding: 10 
   },
-  /** Section */
-  section: {
-    marginTop: 12,
+  modalButtons: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginTop: 20 
   },
-  sectionBody: {
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#e3e3e3",
-    paddingLeft: 24,
+  modalCancel: { 
+    color: "#dc2626", 
+    fontSize: 16 
   },
-  sectionTitle: {
-    marginTop: 0,
-    marginHorizontal: 24,
-    marginBottom: 8,
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#a7a7a7",
-    textTransform: "uppercase",
-    letterSpacing: 1.2,
+  modalSave: { 
+    backgroundColor: "#6366f1", 
+    padding: 10, 
+    borderRadius: 5 
   },
-  /** Row */
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    height: 44,
-    paddingRight: 24,
-  },
-  rowWrapper: {
-    borderTopWidth: 1,
-    borderColor: "#e3e3e3",
-  },
-  rowFirst: {
-    borderTopWidth: 0,
-  },
-  rowLabel: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: "#2c2c2c",
-  },
-  rowSpacer: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-  },
-  rowValue: {
-    fontSize: 17,
-    fontWeight: "500",
-    color: "#7f7f7f",
-    marginRight: 4,
-  },
-
-  rowLabelLogout: {
-    width: "100%",
-    textAlign: "center",
-    fontWeight: "600",
-    color: "#dc2626",
-    marginTop: 10,
-  },
-
-  contentFooter: {
-    marginTop: 24,
-    fontSize: 13,
-    fontWeight: "500",
-    textAlign: "center",
-    color: "#a69f9f",
+  modalSaveText: { 
+    color: "#fff", 
+    fontSize: 16 
   },
 });

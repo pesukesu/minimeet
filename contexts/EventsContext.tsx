@@ -1,15 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
-
 import { supabase } from "@/config/supabase";
-
 import {
   EventsContextType,
   SupabaseEventType,
   EventsLoadingState,
   SupabaseCategoryType,
 } from "@/types";
-
-import { useAuthenticatedUser } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EventsAndDataContext = createContext<EventsContextType>({
   allEventsForCurrentCity: [],
@@ -27,19 +24,28 @@ const EventsAndDataContext = createContext<EventsContextType>({
 export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { userProfile } = useAuthenticatedUser();
+  const { userProfile } = useAuth();
+
+  // If userProfile is null, fall back to default
+  const safeUserProfile = userProfile ?? { user_id: "e70f8b2a-fdc4-4fd2-9747-f5a0c5ff1042", email: "" };
+
+  // Now use `userProfile` if available, otherwise fall back to `safeUserProfile`
+  const currentUserProfile = userProfile ? userProfile : safeUserProfile;
+
+  // Log which profile is being used for debugging purposes
+  if (userProfile) {
+    console.log("Using actual user profile:", currentUserProfile.user_id);
+  } else {
+    console.log("Using fallback safe user profile:", currentUserProfile.user_id);
+  }
 
   const [allEvents, setAllEvents] = useState<SupabaseEventType[]>([]);
-  const [allEventCategories, setAllEventCategories] = useState<
-    SupabaseCategoryType[]
-  >([]);
+  const [allEventCategories, setAllEventCategories] = useState<SupabaseCategoryType[]>([]);
   const [loadingState, setLoadingState] = useState<EventsLoadingState>({
     events: "fetching",
     categories: "fetching",
     creators: "fetching",
   });
-
-  // Get all the events for the users current city
 
   async function fetchAllMiniMeets() {
     console.log("Fetching all MiniMeets...");
@@ -56,7 +62,6 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("Successfully fetched MiniMeets:", data.length, "events found");
   }
 
-  // Fetch all the event categories
   async function fetchAllEventCategories() {
     console.log("Fetching event categories...");
     setLoadingState((prev) => ({ ...prev, categories: "fetching" }));
@@ -73,27 +78,18 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
       "Successfully fetched categories:",
       data.length,
       "categories found:",
-      data.map((item) => item.title).join(", ") //print all event categories
+      data.map((item) => item.title).join(", ")
     );
   }
-
-  // Get a single event by id
 
   function getEventById(id: string | string[]) {
     const searchId = Array.isArray(id) ? id[0] : id;
     return allEvents.find((event) => event.id.toString() === searchId);
   }
 
-  // function to create a new event
-
-  async function createNewEvent(
-    event: Omit<
-      SupabaseEventType,
-      "id" | "created_at" | "updated_at" | "host_id"
-    >
-  ) {
+  async function createNewEvent(event: Omit<SupabaseEventType, "id" | "created_at" | "updated_at" | "host_id">) {
     console.log("Creating new event...");
-    const currentUserId = userProfile.user_id;
+    const currentUserId = currentUserProfile.user_id; // Use the actual userProfile or fallback
 
     if (!currentUserId) {
       console.error("Error: User must be logged in to create an event");
@@ -116,10 +112,8 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const newEvent = data[0] as SupabaseEventType;
-
     setAllEvents((prevEvents) => [...prevEvents, newEvent]);
     console.log("Successfully created new event:", newEvent.title);
-
     return newEvent;
   }
 
@@ -127,7 +121,6 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     async function initializeData() {
       await Promise.all([fetchAllMiniMeets(), fetchAllEventCategories()]);
     }
-
     initializeData();
   }, []);
 

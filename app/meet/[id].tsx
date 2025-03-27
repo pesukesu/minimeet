@@ -92,6 +92,7 @@ export default function MinimeetPage() {
         </SafeAreaView>
       </View>
 
+      {/* Render Event Overview or Creator Overview based on tab selection */}
       {value === 0 ? (
         <EventOverview event={event} />
       ) : (

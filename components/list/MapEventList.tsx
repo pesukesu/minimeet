@@ -9,7 +9,7 @@ import {
   Modal
 } from "react-native";
 import { SupabaseEventType } from "@/types"; 
-import HomeEventCard from "../cards/HomeEventCard";
+import MapEventListCard from "../cards/MapEventListCard";
 
 type MapEventListProps = {
   events: SupabaseEventType[]; // List of events
@@ -33,7 +33,7 @@ export default function MapEventList({ events, visible, onClose }: MapEventListP
               renderItem={({ item }) => (
                 <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
                   <View>
-                    <HomeEventCard event={item} />
+                    <MapEventListCard event={item} />
                   </View>
                 </TouchableWithoutFeedback>
               )}
