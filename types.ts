@@ -14,10 +14,13 @@ export type EventsContextType = {
 export type AuthContextType = {
   session: Session | null;
   userProfile: UserProfile | null;
+  userSettings: UserSettings | null; // Add this field to hold user settings
   getSingleUserProfile: (userId: string) => Promise<UserProfile | null>;
+  getUserSettings: (userId: string) => Promise<UserSettings | null>; // Method to fetch user settings
+  updateUserSettings: (userId: string, userSettingsData: UserSettings) => Promise<void>; // Method to update user settings
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  updateUserProfile: (userProfileData: UserProfile) => Promise<void>; // Add this line
+  updateUserProfile: (userProfileData: UserProfile) => Promise<void>;
   loading: boolean;
   status: LoadingStatus;
 };
@@ -77,3 +80,11 @@ export interface UserProfile {
   hometown?: string;
 }
 
+export interface UserSettings {
+  user_id: string; // assuming each user has one set of settings
+  notifications_enable: boolean;
+  dark_mode: boolean;
+  language: string;
+  timezone: string;
+  // Add any other settings that exist in your user_settings table
+}

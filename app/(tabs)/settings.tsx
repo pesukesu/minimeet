@@ -10,10 +10,10 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
-  Switch,
   Platform,
   KeyboardAvoidingView,
   Alert,
+  Switch,
 } from "react-native";
 import { useAuth } from "@/contexts/AuthContext";
 import FeatherIcon from "@expo/vector-icons/Feather";
@@ -27,7 +27,20 @@ export default function SettingsScreen() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
+  // New state for additional settings
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
+    marketingEmails: false,
+  });
+
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: 'public',
+    dataSharing: false,
+  });
+
+  const [appTheme, setAppTheme] = useState('light');
 
   // Temporary state for editing
   const [tempProfile, setTempProfile] = useState<Partial<UserProfile>>({
@@ -39,10 +52,6 @@ export default function SettingsScreen() {
     job_title: "",
     hometown: "",
   });
-
-  // Settings states
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Initialize temporary profile when userProfile changes
   useEffect(() => {
@@ -63,20 +72,16 @@ export default function SettingsScreen() {
     }
   }, [userProfile]);
 
-
   const handleUpdateProfile = async () => {
-    // Prevent multiple simultaneous updates
     if (loading) return;
   
     setLoading(true);
   
     try {
-      // Ensure user_id is available (user_id should be provided by useAuth context)
       if (!userProfile?.user_id) {
         throw new Error("User ID is missing. Cannot update profile.");
       }
   
-      // Construct the updated profile object
       const updatedProfile: Partial<UserProfile> = {
         first_name: tempProfile.first_name || userProfile.first_name,
         last_name: tempProfile.last_name || userProfile.last_name,
@@ -87,10 +92,8 @@ export default function SettingsScreen() {
         hometown: tempProfile.hometown || userProfile.hometown,
       };
   
-      // Update the profile
       await updateUserProfile(updatedProfile);
   
-      // Close editing mode
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update profile:", error);
@@ -103,11 +106,6 @@ export default function SettingsScreen() {
       setLoading(false);
     }
   };
-  
-
-
-
-
 
   // Render loading state
   if (isLoading) {
@@ -169,10 +167,115 @@ export default function SettingsScreen() {
               <Text style={styles.profileActionTextLogOut}>Log Out</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Additional Settings Section */}
+          <View style={styles.settingsSection}>
+            <Text style={styles.settingsSectionTitle}>Notifications</Text>
+            <View style={styles.settingItem}>
+              <Text>Email Notifications</Text>
+              <Switch 
+                value={notificationSettings.emailNotifications}
+                onValueChange={(value) => setNotificationSettings(prev => ({
+                  ...prev, 
+                  emailNotifications: value
+                }))}
+              />
+            </View>
+            <View style={styles.settingItem}>
+              <Text>Push Notifications</Text>
+              <Switch 
+                value={notificationSettings.pushNotifications}
+                onValueChange={(value) => setNotificationSettings(prev => ({
+                  ...prev, 
+                  pushNotifications: value
+                }))}
+              />
+            </View>
+            <View style={styles.settingItem}>
+              <Text>Marketing Emails</Text>
+              <Switch 
+                value={notificationSettings.marketingEmails}
+                onValueChange={(value) => setNotificationSettings(prev => ({
+                  ...prev, 
+                  marketingEmails: value
+                }))}
+              />
+            </View>
+          </View>
+
+          <View style={styles.settingsSection}>
+            <Text style={styles.settingsSectionTitle}>Privacy</Text>
+            <View style={styles.settingItem}>
+              <Text>Profile Visibility</Text>
+              <View style={styles.pickerContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.pickerOption, 
+                    privacySettings.profileVisibility === 'public' && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => setPrivacySettings(prev => ({
+                    ...prev, 
+                    profileVisibility: 'public'
+                  }))}
+                >
+                  <Text>Public</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.pickerOption, 
+                    privacySettings.profileVisibility === 'private' && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => setPrivacySettings(prev => ({
+                    ...prev, 
+                    profileVisibility: 'private'
+                  }))}
+                >
+                  <Text>Private</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.settingItem}>
+              <Text>Data Sharing</Text>
+              <Switch 
+                value={privacySettings.dataSharing}
+                onValueChange={(value) => setPrivacySettings(prev => ({
+                  ...prev, 
+                  dataSharing: value
+                }))}
+              />
+            </View>
+          </View>
+
+          <View style={styles.settingsSection}>
+            <Text style={styles.settingsSectionTitle}>App Appearance</Text>
+            <View style={styles.settingItem}>
+              <Text>Theme</Text>
+              <View style={styles.pickerContainer}>
+                <TouchableOpacity 
+                  style={[
+                    styles.pickerOption, 
+                    appTheme === 'light' && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => setAppTheme('light')}
+                >
+                  <Text>Light</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[
+                    styles.pickerOption, 
+                    appTheme === 'dark' && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => setAppTheme('dark')}
+                >
+                  <Text>Dark</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </View>
       </ScrollView>
 
-      {/* Profile Edit Modal */}
+      {/* Profile Edit Modal - Unchanged from previous implementation */}
       <Modal 
         visible={isEditing} 
         transparent 
@@ -260,7 +363,6 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   loadingContainer: { 
     flex: 1, 
@@ -344,5 +446,42 @@ const styles = StyleSheet.create({
   modalSaveText: { 
     color: "#fff", 
     fontSize: 16 
+  },
+   // New styles for additional settings
+   settingsSection: {
+    backgroundColor: '#fff',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#e3e3e3',
+  },
+  settingsSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#333',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  pickerOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  pickerOptionSelected: {
+    backgroundColor: '#6366f1',
   },
 });
