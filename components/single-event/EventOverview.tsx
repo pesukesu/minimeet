@@ -43,7 +43,7 @@ export default function EventOverview({ event }: { event: SupabaseEventType }) {
       </View>
       <View style={styles.about}>
         <Text style={styles.aboutTitle}>About This Event</Text>
-        <Text style={styles.aboutDescription}>{formattedDescription}</Text>
+        <Text style={styles.aboutDescription} >{formattedDescription}{"eventOverview"}</Text>
       </View>
     </ScrollView>
   );

@@ -5,6 +5,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Alert
 } from "react-native";
 
 import { router, useLocalSearchParams } from "expo-router";
@@ -111,18 +112,21 @@ export default function MinimeetPage() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => {
-              // handle onPress
-            }}
-            style={{ flex: 1, paddingHorizontal: 8 }}
-          >
-            <View style={styles.btnSecondary}>
-              <Text style={styles.btnSecondaryText}>
-                {event.ticket_price ? "Get tickets" : "Join"}
-              </Text>
-            </View>
-          </TouchableOpacity>
+<TouchableOpacity
+  onPress={() => {
+    Alert.alert(
+      "Success",
+      event.ticket_price ? "Redirecting to tickets..." : "You have joined the event!"
+    );
+  }}
+  style={{ flex: 1, paddingHorizontal: 8 }}
+>
+  <View style={styles.btnSecondary}>
+    <Text style={styles.btnSecondaryText}>
+      {event.ticket_price ? "Get tickets" : "Join"}
+    </Text>
+  </View>
+</TouchableOpacity>
         </View>
       </View>
     </View>

@@ -8,6 +8,8 @@ export type EventsContextType = {
   eventCategories: SupabaseCategoryType[];
   getEventById: (id: string | string[]) => SupabaseEventType | undefined;
   createNewEvent: (event: SupabaseEventType) => Promise<void>;
+  hasLiked: (eventId: string) => boolean,
+  toggleLike: (eventId: string) => Promise<void>,
   status: EventsLoadingState;
 };
 
@@ -88,3 +90,12 @@ export interface UserSettings {
   timezone: string;
   // Add any other settings that exist in your user_settings table
 }
+export type SupabaseEventParticipantsType = {
+  id: number;
+  event_id: number;      // foreign key to Events.id
+  user_id: string;       // foreign key to auth.users.id
+  liked: boolean;        // new field to track likes
+  status?: string | null; // optional, for RSVP or other status info
+  created_at?: string;   // optionally add timestamps if you have them
+  updated_at?: string;
+};

@@ -43,7 +43,7 @@ export default function HomeEventCard({ event }: HomeEventCardProps) {
           </Text>
 
           <Text style={styles.cardDescription} numberOfLines={2} ellipsizeMode="tail">
-            {event.description}
+            {event.description} {"MapEventListCard"}
           </Text>
         </View>
 

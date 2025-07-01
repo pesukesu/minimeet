@@ -13,7 +13,9 @@ const EventsAndDataContext = createContext<EventsContextType>({
   allEventsForCurrentUser: [],
   eventCategories: [],
   getEventById: () => undefined,
-  createNewEvent: async () => {},
+  createNewEvent: async () => { },
+  hasLiked: (eventId: string) => false,
+  toggleLike: async (eventId: string) => { },
   status: {
     events: "fetching",
     categories: "fetching",
@@ -41,6 +43,7 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [allEvents, setAllEvents] = useState<SupabaseEventType[]>([]);
   const [allEventCategories, setAllEventCategories] = useState<SupabaseCategoryType[]>([]);
+
   const [loadingState, setLoadingState] = useState<EventsLoadingState>({
     events: "fetching",
     categories: "fetching",
@@ -82,6 +85,105 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   }
 
+
+
+
+// Event Participants START
+const [eventParticipants, setEventParticipants] = useState<
+  { event_id: string; user_id: string; liked: boolean }[]
+>([]);
+
+async function fetchUserParticipants() {
+  if (!currentUserProfile.user_id) return;
+
+  const { data, error } = await supabase
+    .from("event_participants") 
+    .select("*")
+    .eq("user_id", currentUserProfile.user_id);
+
+  if (error) {
+    console.error(" Error fetching event participants:", error);
+    return;
+  }
+
+  console.log(" Loaded participants:", data);
+  setEventParticipants(data || []);
+}
+
+function hasLiked(eventId: string) {
+  return eventParticipants.some(
+    (p) => p.event_id === eventId && p.liked === true
+  );
+}
+
+const toggleLike = async (eventId: string): Promise<void> => {
+  const userId = currentUserProfile.user_id;
+  if (!userId) return;
+
+  const existing = eventParticipants.find(
+    (p) => p.event_id === eventId && p.user_id === userId
+  );
+
+  console.log("🔁 toggleLike called for:", { eventId, userId });
+  console.log("Found existing participation:", existing);
+
+  if (existing) {
+    const updatedLiked = !existing.liked;
+
+    const { error } = await supabase
+      .from("event_participants")
+      .update({ liked: updatedLiked })
+      .eq("event_id", eventId)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error(" Error updating like:", error);
+      return;
+    }
+
+    setEventParticipants((prev) =>
+      prev.map((p) =>
+        p.event_id === eventId && p.user_id === userId
+          ? { ...p, liked: updatedLiked }
+          : p
+      )
+    );
+
+    console.log("✅ Like updated in DB and state:", updatedLiked);
+  } else {
+
+    const { error } = await supabase.from("event_participants").insert([
+      {
+        event_id: eventId,
+        user_id: userId,
+        liked: true,
+      },
+    ]);
+
+    if (error) {
+      console.error(" Error inserting like:", error);
+      return;
+    }
+
+    setEventParticipants((prev) => [
+      ...prev,
+      { event_id: eventId, user_id: userId, liked: true },
+    ]);
+
+    console.log("Like inserted into DB and state.");
+  }
+};
+// Event Participants END
+
+
+
+
+
+
+
+
+
+
   function getEventById(id: string | string[]) {
     const searchId = Array.isArray(id) ? id[0] : id;
     return allEvents.find((event) => event.id.toString() === searchId);
@@ -119,7 +221,8 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     async function initializeData() {
-      await Promise.all([fetchAllMiniMeets(), fetchAllEventCategories()]);
+      await Promise.all([fetchAllMiniMeets(), fetchAllEventCategories(), fetchUserParticipants(),
+      ]);
     }
     initializeData();
   }, []);
@@ -130,6 +233,8 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
     status: loadingState,
     eventCategories: allEventCategories,
     getEventById,
+    hasLiked,
+    toggleLike,
     createNewEvent: async (event: SupabaseEventType) => {
       await createNewEvent(event);
     },
