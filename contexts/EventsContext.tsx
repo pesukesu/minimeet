@@ -14,8 +14,8 @@ const EventsAndDataContext = createContext<EventsContextType>({
   eventCategories: [],
   getEventById: () => undefined,
   createNewEvent: async () => { },
-  hasLiked: (eventId: string) => false,
-  toggleLike: async (eventId: string) => { },
+  hasLiked: (eventId: number) => false,
+  toggleLike: async (eventId: number) => { },
   status: {
     events: "fetching",
     categories: "fetching",
@@ -90,7 +90,7 @@ export const EventsAndDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
 // Event Participants START
 const [eventParticipants, setEventParticipants] = useState<
-  { event_id: string; user_id: string; liked: boolean }[]
+  { event_id: number; user_id: string; liked: boolean }[]
 >([]);
 
 async function fetchUserParticipants() {
@@ -110,13 +110,13 @@ async function fetchUserParticipants() {
   setEventParticipants(data || []);
 }
 
-function hasLiked(eventId: string) {
+function hasLiked(eventId: number) {
   return eventParticipants.some(
     (p) => p.event_id === eventId && p.liked === true
   );
 }
 
-const toggleLike = async (eventId: string): Promise<void> => {
+const toggleLike = async (eventId: number): Promise<void> => {
   const userId = currentUserProfile.user_id;
   if (!userId) return;
 

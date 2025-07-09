@@ -8,8 +8,8 @@ export type EventsContextType = {
   eventCategories: SupabaseCategoryType[];
   getEventById: (id: string | string[]) => SupabaseEventType | undefined;
   createNewEvent: (event: SupabaseEventType) => Promise<void>;
-  hasLiked: (eventId: string) => boolean,
-  toggleLike: (eventId: string) => Promise<void>,
+  hasLiked: (eventId: number) => boolean,
+  toggleLike: (eventId: number) => Promise<void>,
   status: EventsLoadingState;
 };
 

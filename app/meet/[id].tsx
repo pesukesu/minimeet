@@ -20,7 +20,7 @@ import CreatorOverview from "@/components/single-event/CreatorOverview";
 const tabItems = [{ name: "Overview" }, { name: "About creator" }];
 
 export default function MinimeetPage() {
-  const { getEventById } = useEvents();
+  const { getEventById, hasLiked, toggleLike } = useEvents();
   const { id } = useLocalSearchParams();
 
   const [value, setValue] = useState(0);
@@ -28,6 +28,9 @@ export default function MinimeetPage() {
   const event = getEventById(id);
 
   if (!event) return <ErrorScreen />;
+
+  // Check if current event is liked
+  const isLiked = hasLiked(event.id);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#F9F9F9" }}>
@@ -46,18 +49,24 @@ export default function MinimeetPage() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                router.back();
-              }}
+              onPress={() => { }}
             >
               <View style={styles.action}>
                 <FeatherIcon color="#242329" name="share" size={18} />
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => {}}>
+            <TouchableOpacity 
+              onPress={() => {
+                toggleLike(event.id);
+              }}
+            >
               <View style={styles.action}>
-                <FeatherIcon color="#242329" name="heart" size={18} />
+                <FeatherIcon 
+                  color={isLiked ? "#F26463" : "#242329"} 
+                  name="heart" 
+                  size={18} 
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -112,21 +121,21 @@ export default function MinimeetPage() {
             </View>
           </TouchableOpacity>
 
-<TouchableOpacity
-  onPress={() => {
-    Alert.alert(
-      "Success",
-      event.ticket_price ? "Redirecting to tickets..." : "You have joined the event!"
-    );
-  }}
-  style={{ flex: 1, paddingHorizontal: 8 }}
->
-  <View style={styles.btnSecondary}>
-    <Text style={styles.btnSecondaryText}>
-      {event.ticket_price ? "Get tickets" : "Join"}
-    </Text>
-  </View>
-</TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                "Success",
+                event.ticket_price ? "Redirecting to tickets..." : "You have joined the event!"
+              );
+            }}
+            style={{ flex: 1, paddingHorizontal: 8 }}
+          >
+            <View style={styles.btnSecondary}>
+              <Text style={styles.btnSecondaryText}>
+                {event.ticket_price ? "Get tickets" : "Join"}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
